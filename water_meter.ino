@@ -12,10 +12,23 @@
 #define CNTR_C_PIN 3
 #define CNTR_C_INTR 1
 
-volatile int hot_cntr=0;
-volatile int cold_cntr=0;
-volatile int debounce_h=0;
-volatile int debounce_c=0;
+
+
+/*
+ * Eeeprom adres structure
+ * 
+ */
+#define EEPROM_H_ADDR 0
+#define EEPROM_C_ADDR 4
+
+
+
+volatile unsigned int hot_cntr=0;
+volatile unsigned int cold_cntr=0;
+volatile unsigned int debounce_h=0;
+volatile unsigned int debounce_c=0;
+
+unsigned int main_cntr=0;
 
 void hotCntrTick () {
   if (millis() - debounce_h >= 200) {
@@ -32,8 +45,9 @@ void coldCntrTick () {
 
 void setup() {
   Serial.begin(9600);
-
-
+  hot_cntr = eeprom_read_word(EEPROM_H_ADDR);
+  cold_cntr = eeprom_read_word(EEPROM_C_ADDR);
+  
   pinMode(CNTR_H_PIN, INPUT_PULLUP);
   attachInterrupt(CNTR_H_INTR, hotCntrTick, CHANGE);
   pinMode(CNTR_C_PIN, INPUT_PULLUP);
@@ -46,6 +60,12 @@ void loop() {
   delay(500);                       // wait for a second
   digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
   delay(500);                       // wait for a second
+  main_cntr++;
+  if (main_cntr%5==0) {
+    Serial.print("*");
+    eeprom_write_word(EEPROM_H_ADDR, hot_cntr);
+    eeprom_write_word(EEPROM_C_ADDR, cold_cntr);
+  }
   Serial.print("Hot: ");
   Serial.print(hot_cntr);
   Serial.print(" Cold: ");
