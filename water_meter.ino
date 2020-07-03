@@ -1,3 +1,4 @@
+#include <avr/eeprom.h>
 /*
  * Helpfull infrmation
  * https://alexgyver.ru/lessons/pinout/
