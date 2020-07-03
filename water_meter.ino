@@ -29,15 +29,17 @@ volatile unsigned int debounce_h=0;
 volatile unsigned int debounce_c=0;
 
 unsigned int main_cntr=0;
+volatile unsigned int last_hot_cntr=0;
+volatile unsigned int last_cold_cntr=0;
 
 void hotCntrTick () {
-  if (millis() - debounce_h >= 200) {
+  if (millis() - debounce_h >= 300) {
     debounce_h = millis();
     hot_cntr++;
   }
 }
 void coldCntrTick () {
-  if (millis() - debounce_c >= 200) {
+  if (millis() - debounce_c >= 300) {
     debounce_c = millis();
     cold_cntr++;
   }
@@ -47,7 +49,6 @@ void setup() {
   Serial.begin(9600);
   hot_cntr = eeprom_read_word(EEPROM_H_ADDR);
   cold_cntr = eeprom_read_word(EEPROM_C_ADDR);
-  
   pinMode(CNTR_H_PIN, INPUT_PULLUP);
   attachInterrupt(CNTR_H_INTR, hotCntrTick, CHANGE);
   pinMode(CNTR_C_PIN, INPUT_PULLUP);
@@ -61,10 +62,12 @@ void loop() {
   digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
   delay(500);                       // wait for a second
   main_cntr++;
-  if (main_cntr%5==0) {
+  if (main_cntr%5==0 && (hot_cntr!=last_hot_cntr||cold_cntr!=last_cold_cntr )) {
     Serial.print("*");
     eeprom_write_word(EEPROM_H_ADDR, hot_cntr);
     eeprom_write_word(EEPROM_C_ADDR, cold_cntr);
+    last_hot_cntr=hot_cntr;
+    last_cold_cntr=cold_cntr;
   }
   Serial.print("Hot: ");
   Serial.print(hot_cntr);
