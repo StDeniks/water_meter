@@ -26,8 +26,8 @@
 
 volatile unsigned int hot_cntr=0;
 volatile unsigned int cold_cntr=0;
-volatile unsigned int debounce_h=0;
-volatile unsigned int debounce_c=0;
+volatile uint32_t debounce_h=0;
+volatile uint32_t debounce_c=0;
 
 unsigned int main_cntr=0;
 volatile unsigned int last_hot_cntr=0;
@@ -36,13 +36,15 @@ volatile unsigned int last_cold_cntr=0;
 void hotCntrTick () {
   if (millis() - debounce_h >= MTR_DBNC) {
     debounce_h = millis();
-    hot_cntr++;
+    if (digitalRead(CNTR_H_PIN)) 
+      hot_cntr++;
   }
 }
 void coldCntrTick () {
   if (millis() - debounce_c >= MTR_DBNC) {
     debounce_c = millis();
-    cold_cntr++;
+    if (!digitalRead(CNTR_C_PIN))
+      cold_cntr++;
   }
 }
 
@@ -54,6 +56,7 @@ void setup() {
   attachInterrupt(CNTR_H_INTR, hotCntrTick, CHANGE);
   pinMode(CNTR_C_PIN, INPUT_PULLUP);
   attachInterrupt(CNTR_C_INTR, coldCntrTick, CHANGE);
+  Serial.print("Start");
 }
 
 void loop() {
@@ -75,5 +78,12 @@ void loop() {
   Serial.print(" Cold: ");
   Serial.print(cold_cntr);
   Serial.println();
+
+  if (Serial.available() > 0) {
+    if (Serial.find("reset"))
+      Serial.println("RESET meters");
+      hot_cntr=0;
+      cold_cntr=0;
+  }
 
 }
