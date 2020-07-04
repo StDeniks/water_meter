@@ -16,10 +16,11 @@
 
 /*
  * Eeeprom adres structure
- * 
  */
 #define EEPROM_H_ADDR 0
 #define EEPROM_C_ADDR 4
+
+#define MTR_DBNC 500
 
 
 
@@ -33,13 +34,13 @@ volatile unsigned int last_hot_cntr=0;
 volatile unsigned int last_cold_cntr=0;
 
 void hotCntrTick () {
-  if (millis() - debounce_h >= 300) {
+  if (millis() - debounce_h >= MTR_DBNC) {
     debounce_h = millis();
     hot_cntr++;
   }
 }
 void coldCntrTick () {
-  if (millis() - debounce_c >= 300) {
+  if (millis() - debounce_c >= MTR_DBNC) {
     debounce_c = millis();
     cold_cntr++;
   }
