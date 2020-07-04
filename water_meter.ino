@@ -36,7 +36,7 @@ volatile unsigned int last_cold_cntr=0;
 void hotCntrTick () {
   if (millis() - debounce_h >= MTR_DBNC) {
     debounce_h = millis();
-    if (digitalRead(CNTR_H_PIN)) 
+    if (!digitalRead(CNTR_H_PIN)) 
       hot_cntr++;
   }
 }
