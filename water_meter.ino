@@ -11,7 +11,8 @@
 #define CNTR_H_INTR 0
 #define CNTR_C_PIN 3
 #define CNTR_C_INTR 1
-
+// Buzzer pin
+#define BUZER_PIN 4
 
 
 /*
@@ -50,12 +51,14 @@ void coldCntrTick () {
 
 void setup() {
   Serial.begin(9600);
-  hot_cntr = eeprom_read_word(EEPROM_H_ADDR);
-  cold_cntr = eeprom_read_word(EEPROM_C_ADDR);
+  hot_cntr = last_hot_cntr = eeprom_read_word(EEPROM_H_ADDR);
+  cold_cntr = last_cold_cntr = eeprom_read_word(EEPROM_C_ADDR);
   pinMode(CNTR_H_PIN, INPUT_PULLUP);
   attachInterrupt(CNTR_H_INTR, hotCntrTick, CHANGE);
   pinMode(CNTR_C_PIN, INPUT_PULLUP);
   attachInterrupt(CNTR_C_INTR, coldCntrTick, CHANGE);
+  pinMode(BUZER_PIN, OUTPUT);
+  digitalWrite(BUZER_PIN, HIGH);
   Serial.print("Start");
 }
 
@@ -66,12 +69,35 @@ void loop() {
   digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
   delay(500);                       // wait for a second
   main_cntr++;
-  if (main_cntr%5==0 && (hot_cntr!=last_hot_cntr||cold_cntr!=last_cold_cntr )) {
-    Serial.print("*");
-    eeprom_write_word(EEPROM_H_ADDR, hot_cntr);
-    eeprom_write_word(EEPROM_C_ADDR, cold_cntr);
-    last_hot_cntr=hot_cntr;
-    last_cold_cntr=cold_cntr;
+  if (main_cntr%5==0) {
+    if (hot_cntr!=last_hot_cntr) {
+      Serial.println("*H");
+      eeprom_write_word(EEPROM_H_ADDR, hot_cntr);
+      if (hot_cntr>0) {
+        for( int i=0; i < hot_cntr-last_hot_cntr;i++){
+          digitalWrite(BUZER_PIN, LOW);
+          delay(500);
+          digitalWrite(BUZER_PIN, HIGH);
+          delay(500);
+        }
+      }
+      last_hot_cntr=hot_cntr;
+
+    }
+    if (cold_cntr!=last_cold_cntr) {
+      Serial.println("*C");
+      eeprom_write_word(EEPROM_C_ADDR, cold_cntr);
+      if (cold_cntr>0) {
+        for( int i=0; i < cold_cntr-last_cold_cntr;i++){
+          digitalWrite(BUZER_PIN, LOW);
+          delay(200);
+          digitalWrite(BUZER_PIN, HIGH);
+          delay(200);
+        }
+      }
+      last_cold_cntr=cold_cntr;
+
+    }
   }
   Serial.print("Hot: ");
   Serial.print(hot_cntr);
