@@ -108,8 +108,10 @@ void loop() {
   if (Serial.available() > 0) {
     if (Serial.find("reset"))
       Serial.println("RESET meters");
-      hot_cntr=0;
-      cold_cntr=0;
+      hot_cntr=last_hot_cntr=0;
+      cold_cntr=last_cold_cntr=0;
+      eeprom_write_word(EEPROM_H_ADDR, hot_cntr);
+      eeprom_write_word(EEPROM_C_ADDR, cold_cntr);
   }
 
 }
